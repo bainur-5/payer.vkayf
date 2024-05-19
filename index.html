@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <meta name="referrer" content="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/3.2.0/shaka-player.compiled.js"></script>
+    <script
+      src="https://kit.fontawesome.com/d3546979b3.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        font-family: "Inter", sans-serief;
+      }
+      body {
+        height: 100vh;
+      }
+      .sectionLogin {
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+      }
+      .LoginBlock {
+        max-width: 535px !important;
+        width: 100%;
+        background-color: #404040;
+        padding: 25px 20px;
+        margin: 10px;
+        text-align: center;
+        border-radius: 15px;
+      }
+      .logo_block {
+        color: white;
+      }
+      .title_log {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .line {
+        width: 40px;
+        height: 1px;
+        background-color: white;
+        margin: 0 5px;
+      }
+      .line_text {
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 28px;
+      }
+      .title_text {
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 20px;
+      }
+      .loginForm {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        color: white;
+        margin: 10px 0;
+      }
+      .loginForm label {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 24px;
+      }
+      .loginForm input {
+        width: 100%;
+        height: 42px;
+        padding: 0;
+        margin: 0;
+        padding-left: 12px;
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 24px;
+      }
+      .password-toggle {
+        position: relative;
+        width: 100%;
+      }
+      .password-toggle input {
+        padding-right: 40px; /* Ensure space for the icon */
+      }
+      .password-toggle .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        cursor: pointer;
+      }
+      .password-toggle .toggle-password i {
+        color: #aaa;
+        font-size: 18px;
+      }
+      .password-toggle .toggle-password i:hover {
+        color: #666;
+      }
+      .loginForm button {
+        margin: 0 auto;
+        background-color: #ff9200;
+        color: white;
+        border: none;
+        width: 300px;
+        padding: 10px;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 24px;
+        cursor: pointer;
+      }
+      .error-message {
+        color: #ff6363;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none; /* Начально скрываем текст ошибки */
+      }
+      .input-error {
+        border-color: #ff6363 !important; /* Цвет рамки input при ошибке */
+      }
+      .videoBlock {
+        display: none;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sectionLogin" id="sectionLogin">
+      <div class="LoginBlock">
+        <div class="logo_block">
+          <img
+            src="https://vkayf.tv/wp-content/uploads/2024/04/logo_mini.svg"
+            alt=""
+          />
+          <div class="title_log">
+            <div class="line"></div>
+            <div class="line_text"><p>Войдите в свой аккаунт</p></div>
+            <div class="line"></div>
+          </div>
+          <div class="title_text">
+            <p id="text-error">
+              Добро пожаловать! Пожалуйста, введите свои данные.
+            </p>
+          </div>
+        </div>
+        <form novalidate id="loginForm" class="loginForm">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="Введите электронную почту"
+            required
+          />
+          <div id="email-error" class="error-message">
+            Важно заполнить это поле
+          </div>
+          <div id="email-format-error" class="error-message">
+            Поле Email заполнено некорректно
+          </div>
+          <br />
+          <label for="password">Пароль</label>
+          <div class="password-toggle">
+            <input
+              type="password"
+              id="password"
+              placeholder="Введите пароль"
+              required
+            />
+            <span id="togglePassword" class="toggle-password">
+              <i class="fa-regular fa-eye-slash"></i>
+            </span>
+          </div>
+          <div id="password-error" class="error-message">
+            Важно заполнить это поле
+          </div>
+          <br />
+          <button type="submit">ВОЙТИ</button>
+        </form>
+      </div>
+    </div>
+    <div id="videoBlock" class="videoBlock">
+      <video id="video" controls width="800"></video>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const $sectionLogin = document.getElementById("sectionLogin");
+        const $video = document.getElementById("video");
+        const player = new shaka.Player($video);
+        const userAgent = navigator.userAgent.toLowerCase();
+        checkAuthorization();
+        checkBrowser();
+
+        async function checkAuthorization() {
+          const refreshToken = getCookie("refresh_token");
+          if (!refreshToken) {
+            showLoginForm();
+            return;
+          }
+          try {
+            const apiUrl =
+              "https://api.vkayf.tv/vkayf/v1/auth/token?login=t9260119001@gmail.com";
+            const response = await fetch(apiUrl, {
+              headers: {
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const newAccessToken = data.accessToken;
+              const newRefreshToken = data.refreshToken;
+
+              if (newAccessToken && newRefreshToken) {
+                setCookie("access_token", newAccessToken);
+                setCookie("refresh_token", newRefreshToken);
+                executeRequests();
+              }
+              $sectionLogin.style.display = "none";
+            } else {
+              showLoginForm();
+            }
+          } catch (error) {
+            console.error("Auth check failed:", error);
+            showLoginForm();
+          }
+        }
+        function showLoginForm() {
+          $sectionLogin.style.display = "flex";
+          const emailInput = document.getElementById("email");
+          const passwordInput = document.getElementById("password");
+          const emailError = document.getElementById("email-error");
+          const passwordError = document.getElementById("password-error");
+          const emailFormatError =
+            document.getElementById("email-format-error");
+          document
+            .getElementById("loginForm")
+            .addEventListener("submit", async function (event) {
+              event.preventDefault();
+
+              let isValid = true;
+              const email = document.getElementById("email").value;
+              const password = document.getElementById("password").value;
+
+              // Check if email or password is empty
+              if (email.length === 0 || password.length === 0) {
+                document.getElementById("text-error").style.color = "#FF6363";
+                document.getElementById(
+                  "text-error"
+                ).textContent = `Неверное имя пользователя или пароль`;
+
+                // Check email
+                if (email.length === 0) {
+                  emailError.style.display = "block";
+                  emailInput.classList.add("input-error");
+                  emailFormatError.style.display = "none";
+                  isValid = false;
+                } else {
+                  emailError.style.display = "none";
+                  emailInput.classList.remove("input-error");
+                }
+
+                // Check password
+                if (password.length === 0) {
+                  passwordError.style.display = "block";
+                  passwordInput.classList.add("input-error");
+                  isValid = false;
+                } else {
+                  passwordError.style.display = "none";
+                  passwordInput.classList.remove("input-error");
+                }
+              } else {
+                // Check email format
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                  emailFormatError.style.display = "block";
+                  emailInput.classList.add("input-error");
+                  isValid = false;
+                } else {
+                  emailFormatError.style.display = "none";
+                  emailInput.classList.remove("input-error");
+                }
+              }
+
+              // If everything is valid, authorize
+              if (isValid) {
+                authorize(email, password)
+                  .then(() => {
+                    $sectionLogin.style.display = "none";
+                    executeRequests();
+                  })
+                  .catch((error) => {
+                    console.error("Ошибка при авторизации:", error);
+                  });
+              }
+            });
+
+          emailInput.addEventListener("input", function () {
+            const trimmedValue = emailInput.value.trim();
+
+            if (trimmedValue !== "") {
+              emailError.style.display = "none";
+              emailInput.classList.remove("input-error");
+            }
+          });
+          emailInput.addEventListener("input", function () {
+            const trimmedValue = emailInput.value.trim();
+
+            if (
+              trimmedValue !== "" &&
+              /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)
+            ) {
+              emailFormatError.style.display = "none";
+              emailInput.classList.remove("input-error");
+            }
+          });
+
+          passwordInput.addEventListener("input", function () {
+            if (passwordInput.value.trim() !== "") {
+              passwordError.style.display = "none";
+              passwordInput.classList.remove("input-error");
+            }
+          });
+        }
+        document
+          .getElementById("togglePassword")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            // Получаем ссылку на элемент поля пароля внутри обработчика события
+            const passwordField = document.getElementById("password");
+            const toggleIcon = document.getElementById("togglePassword");
+            if (passwordField.type === "password") {
+              console.log("ole");
+              passwordField.type = "text";
+              toggleIcon.innerHTML = '<i class="fa-regular fa-eye"></i>';
+            } else {
+              console.log("ou");
+              passwordField.type = "password";
+              toggleIcon.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+            }
+            console.log("skatch");
+          });
+        async function authorize(email, password) {
+          const basicAuth = btoa(`${email}:${password}`);
+          const apiUrl = "https://api.vkayf.tv/vkayf/v1/auth/authorize";
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${basicAuth}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setCookie("access_token", data.accessToken);
+            setCookie("refresh_token", data.refreshToken);
+          }
+          if (!response.ok) {
+            const data = await response.json();
+            console.log(data);
+            console.log(document.getElementById("text-error"));
+            document.getElementById("text-error").style.color = "#FF6363";
+            document.getElementById("text-error").textContent = `${data.error}`;
+          }
+        }
+        async function setCookie(name, value, days = 7) {
+          const date = new Date();
+          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+          const expires = `expires=${date.toUTCString()}`;
+          document.cookie = `${name}=${value};${expires};path=/`;
+        }
+        function getCookie(name) {
+          const nameEQ = `${name}=`;
+          const ca = document.cookie.split(";");
+          for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == " ") c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0)
+              return c.substring(nameEQ.length, c.length);
+          }
+          return null;
+        }
+        function showAlert(message) {
+          alert(message);
+        }
+        function checkBrowser() {
+          if (userAgent.includes("iphone")) {
+            showAlert(
+              "Ошибка: Вы используете iPhone. Пожалуйста, используйте другое устройство для доступа."
+            );
+          } else if (
+            userAgent.includes("safari") &&
+            !userAgent.includes("chrome")
+          ) {
+            showAlert(
+              "Внимание: Вы используете Safari. Для лучшей совместимости рекомендуем использовать другой браузер."
+            );
+          } else if (userAgent.includes("chrome")) {
+            const chromeVersion = parseInt(
+              userAgent.match(/chrome\/(\d+)/)[1],
+              10
+            );
+            if (chromeVersion < 90) {
+              showAlert(
+                "Внимание: Ваша версия Chrome устарела. Рекомендуем обновиться для получения последних функций и безопасности."
+              );
+            }
+          } else {
+            showAlert(
+              "Внимание: Ваш браузер не поддерживается или его тип неизвестен. Рекомендуем обновиться или использовать другой браузер для лучшей совместимости."
+            );
+          }
+        }
+
+        async function fetchData(url, accessToken) {
+          const response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+          }
+          return await response.json();
+        }
+
+        async function executeRequests() {
+          try {
+            const accessToken = getCookie("access_token");
+            const login = "t9260119001@gmail.com";
+            const contentId = "IDLUINODRM";
+            if (!accessToken) {
+              showLoginForm();
+              return;
+            }
+            const urlResponse = await fetchData(
+              `https://api.vkayf.tv/vkayf/v1/drm/play?login=${login}&contentId=${contentId}`,
+              accessToken
+            );
+            const checkResponse = await fetchData(
+              `https://api.vkayf.tv/vkayf/v1/drm/check?login=${login}&contentId=${contentId}`,
+              accessToken
+            );
+
+            if (checkResponse.error && checkResponse.error === "no-rights") {
+              showAlert(
+                "Кажется у вас нет доступа к этому контенту, пожалуйста проверьте ссылку или напишите на support@vkayf.tv"
+              );
+            } else {
+              const { widevineUrl, playreadyUrl } = checkResponse;
+              const videoUrl = urlResponse.url.replace(/^http:/, "https:");
+              const drmConfig = {
+                servers: {
+                  "com.widevine.alpha": widevineUrl,
+                  "com.microsoft.playready": playreadyUrl,
+                },
+              };
+
+              player.configure({
+                drm: drmConfig,
+              });
+
+              try {
+                document.getElementById("videoBlock").style.display = "block";
+                await player.load(videoUrl);
+                console.log("Видео успешно загружено!");
+              } catch (e) {
+                console.error("Ошибка загрузки видео", e);
+              }
+            }
+          } catch (error) {
+            console.error("Ошибка выполнения запросов:", error);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
