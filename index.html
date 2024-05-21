@@ -182,6 +182,10 @@
         left: 50% !important;
         transform: translate(-50%, -50%);
       }
+      .hidden {
+        display: none !important;
+      }
+
       @media (max-width: 1064px) {
         .videoBlock {
           max-width: 600px;
@@ -522,7 +526,7 @@
         }
         function checkBrowser() {
           if (userAgent.includes("iphone")) {
-            document.getElementById("videoBlock").style.display = "none !important";
+            document.getElementById("videoBlock").classList.add("hidden");
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
@@ -530,7 +534,7 @@
             userAgent.includes("safari") &&
             !userAgent.includes("chrome")
           ) {
-            document.getElementById("videoBlock").style.display = "none !important";
+            document.getElementById("videoBlock").classList.add("hidden");
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
@@ -540,7 +544,7 @@
               10
             );
             if (chromeVersion < 90) {
-              document.getElementById("videoBlock").style.display = "none !important";
+              document.getElementById("videoBlock").classList.add("hidden");
               showAlert(
                 "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
               );
@@ -551,7 +555,7 @@
             !/chrome/.test(userAgent) &&
             !/chrome/.test(userAgent)
           ) {
-            document.getElementById("videoBlock").style.display = "none !important";
+            document.getElementById("videoBlock").classList.add("hidden");
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
