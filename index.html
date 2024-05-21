@@ -522,7 +522,7 @@
         }
         function checkBrowser() {
           if (userAgent.includes("iphone")) {
-            document.getElementById("videoBlock").style.display = "none";
+            document.getElementById("videoBlock").style.display = "none !important";
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
@@ -530,7 +530,7 @@
             userAgent.includes("safari") &&
             !userAgent.includes("chrome")
           ) {
-            document.getElementById("videoBlock").style.display = "none";
+            document.getElementById("videoBlock").style.display = "none !important";
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
@@ -540,7 +540,7 @@
               10
             );
             if (chromeVersion < 90) {
-              document.getElementById("videoBlock").style.display = "none";
+              document.getElementById("videoBlock").style.display = "none !important";
               showAlert(
                 "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
               );
@@ -551,7 +551,7 @@
             !/chrome/.test(userAgent) &&
             !/chrome/.test(userAgent)
           ) {
-            document.getElementById("videoBlock").style.display = "none";
+            document.getElementById("videoBlock").style.display = "none !important";
             showAlert(
               "Ваш браузер не поддерживается пожалуйста используйте другой барузер или установите браузер от наших партнеров по ссылке: <a href=https://browser.yandex.ru/c/browser-macos>https://browser.yandex.ru/c/browser-macos</a>"
             );
